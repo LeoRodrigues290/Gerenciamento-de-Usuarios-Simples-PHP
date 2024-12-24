@@ -1,0 +1,5 @@
+/vendor/
+/app/Core/Database.php
+/config/config.php
+/public/vendor/
+/.env
