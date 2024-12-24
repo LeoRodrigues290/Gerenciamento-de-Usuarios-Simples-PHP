@@ -1,8 +1,6 @@
 <?php
-// Incluímos a conexão com o banco de dados
 require_once __DIR__ . '/config/db.php';
 
-// Inicializa variáveis para mensagens
 $mensagemSucesso = "";
 $mensagemErro    = "";
 
@@ -10,7 +8,7 @@ $mensagemErro    = "";
 if (isset($_GET['id'])) {
     $id = (int) $_GET['id'];
 
-    // Se o formulário foi enviado (método POST)
+    // Se o formulário foi enviado
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nome  = $_POST['nome']  ?? null;
         $email = $_POST['email'] ?? null;
@@ -33,14 +31,13 @@ if (isset($_GET['id'])) {
         }
     }
 
-    // Após atualizar (ou se estivermos apenas abrindo a página),
-    // buscamos novamente os dados do usuário para preencher no formulário
+    // Buscamos novamente os dados do usuário
     try {
         $sql = "SELECT * FROM usuarios WHERE id = :id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':id' => $id]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-        // Se não encontrar o usuário, redireciona ou exibe mensagem de erro
+
         if (!$usuario) {
             $mensagemErro = "Usuário não encontrado.";
         }
@@ -48,61 +45,79 @@ if (isset($_GET['id'])) {
         die("Erro ao buscar dados do usuário: " . $e->getMessage());
     }
 } else {
-    // Se não receber ID, podemos redirecionar para a listagem ou exibir um erro
     header("Location: read.php");
     exit;
 }
 ?>
-
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <title>Atualizar Usuário</title>
-    </head>
-    <body>
-    <h1>Atualizar Usuário</h1>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Atualizar Usuário</title>
+    <!-- Bootstrap CSS (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container my-5">
+    <h1 class="mb-4">Atualizar Usuário</h1>
 
     <?php if(!empty($mensagemSucesso)): ?>
-        <p style="color: green;"><?php echo $mensagemSucesso; ?></p>
+        <div class="alert alert-success">
+            <?php echo $mensagemSucesso; ?>
+        </div>
     <?php endif; ?>
 
     <?php if(!empty($mensagemErro)): ?>
-        <p style="color: red;"><?php echo $mensagemErro; ?></p>
+        <div class="alert alert-danger">
+            <?php echo $mensagemErro; ?>
+        </div>
     <?php endif; ?>
 
     <?php if (!empty($usuario)): ?>
         <form action="update.php?id=<?php echo $usuario['id']; ?>" method="POST">
-            <label for="nome">Nome:</label><br>
-            <input type="text" name="nome" id="nome"
-                   value="<?php echo htmlspecialchars($usuario['nome']); ?>" required>
-            <br><br>
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label>
+                <input
+                        type="text"
+                        name="nome"
+                        id="nome"
+                        class="form-control"
+                        value="<?php echo htmlspecialchars($usuario['nome']); ?>"
+                        required
+                >
+            </div>
 
-            <label for="email">Email:</label><br>
-            <input type="email" name="email" id="email"
-                   value="<?php echo htmlspecialchars($usuario['email']); ?>" required>
-            <br><br>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        class="form-control"
+                        value="<?php echo htmlspecialchars($usuario['email']); ?>"
+                        required
+                >
+            </div>
 
-            <button type="submit">Atualizar</button>
+            <button type="submit" class="btn btn-warning">Atualizar</button>
+            <a href="read.php" class="btn btn-secondary">Voltar</a>
         </form>
     <?php endif; ?>
+</div>
 
-    <p><a href="read.php">Voltar para a lista de usuários</a></p>
-    </body>
-    </html>
+<!-- Bootstrap JS + Popper (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
 <?php
 /*
   --- RECOMENDAÇÃO DE MELHORIA (COMENTÁRIO GRANDE) ---
-
-  - Novamente, num projeto MVC, teríamos um método "update" em um "controller" específico,
-    e a lógica de busca/atualização dos dados ficaria em um "model" (ex: UsuarioModel).
-  - Podemos implementar validações de dados mais específicas, como verificar se o email
-    está no formato correto com filter_var($email, FILTER_VALIDATE_EMAIL).
-  - Poderíamos tratar a situação de "usuário não encontrado" de forma mais elegante,
-    talvez exibindo uma página de erro ou redirecionando automaticamente para a listagem.
-  - Em caso de sucesso, poderíamos redirecionar para a listagem de usuários em vez de ficar
-    na mesma página, evitando o "problema do refresh" (reenvio de dados).
-  - Em um cenário mais complexo, poderíamos versionar essas alterações, ter logs detalhados
-    sobre quem realizou a atualização (caso haja login, por exemplo).
+  - Num projeto MVC, teríamos um método "update" em um "controller" e a lógica de busca/atualização
+    em um "model" (ex: UsuarioModel).
+  - Podemos implementar validações de dados específicas, como filter_var($email, FILTER_VALIDATE_EMAIL).
+  - Poderíamos tratar a situação de "usuário não encontrado" de forma mais amigável, com redirecionamento.
+  - Em caso de sucesso, poderíamos redirecionar para a listagem, evitando reenvio de dados.
+  - Em sistemas mais complexos, poderíamos registrar logs de auditoria para cada atualização.
 */
+?>
